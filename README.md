@@ -1,6 +1,6 @@
 # A2F App - Application d'Authentification à Deux Facteurs
 
-## 📋 Description
+##  Description
 
 A2F App est une application PHP d'authentification sécurisée avec support de l'authentification à deux facteurs (2FA). Elle permet aux utilisateurs de s'identifier avec plusieurs méthodes de vérification :
 
@@ -11,18 +11,17 @@ A2F App est une application PHP d'authentification sécurisée avec support de l
 
 L'application utilise des **jetons JWT** pour maintenir les sessions utilisateurs de manière sécurisée.
 
-## 🚀 Fonctionnalités
+## Fonctionnalités
 
-- ✅ Authentification par mot de passe
-- ✅ Authentification à deux facteurs (2FA) avec 3 méthodes :
+-  Authentification par mot de passe
+-  Authentification à deux facteurs (2FA) avec 3 méthodes :
   - Email (via PHPMailer/Gmail)
   - SMS (via Twilio)
   - TOTP/QR Code (Google Authenticator, etc.)
-- ✅ Connexion via GitHub OAuth
-- ✅ Gestion de sessions avec JWT (JSON Web Tokens)
-- ✅ Interface utilisateur moderne et responsive
+-  Connexion via GitHub OAuth
+-  Gestion de sessions avec JWT (JSON Web Tokens)
 
-## 📦 Prérequis
+##  Prérequis
 
 - **PHP** 7.4 ou supérieur
 - **Composer** (gestionnaire de dépendances PHP)
@@ -68,8 +67,8 @@ TWILIO_TOKEN=
 TWILIO_PHONE=
 
 # GitHub OAuth (optionnel)
-GITHUB_CLIENT_ID=
-GITHUB_CLIENT_SECRET=
+GITHUB_CLIENT_ID=ton_client_id_github
+GITHUB_CLIENT_SECRET=ton_client_secret_github
 ```
 
 ## ⚙️ Configuration
@@ -95,7 +94,7 @@ Pour utiliser l'envoi d'emails avec Gmail :
    SMTP_PASS=votre_mot_de_passe_application_16_caracteres
    ```
 
-⚠️ **Important** : Utilisez le **mot de passe d'application** (16 caractères), pas votre mot de passe Gmail habituel !
+ **Important** : Utilisez le **mot de passe d'application** (16 caractères), pas votre mot de passe Gmail habituel !
 
 ### Configuration GitHub OAuth
 
@@ -143,7 +142,7 @@ Pour activer l'envoi de SMS :
    TWILIO_PHONE=+1234567890
    ```
 
-## 🎯 Utilisation
+##  Utilisation
 
 ### Démarrer le serveur de développement
 
@@ -188,6 +187,5 @@ L'application crée automatiquement deux comptes de test :
    - Ou toute autre application TOTP
 3. Entrez le code à 6 chiffres généré par l'application pour activer TOTP
 
-## 📁 Structure du projet
 
 ```
