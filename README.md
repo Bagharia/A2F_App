@@ -72,7 +72,7 @@ GITHUB_CLIENT_ID=ton_client_id_github
 GITHUB_CLIENT_SECRET=ton_client_secret_github
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Configuration Email (Gmail)
 
