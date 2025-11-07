@@ -2,7 +2,6 @@
 require_once 'config.php';
 require_once 'jwt_helper.php';
 
-// Vérifier que l'utilisateur a passé les étapes précédentes
 if (!isset($_SESSION['temp_username'])) {
     header("Location: login.php");
     exit();
@@ -16,77 +15,63 @@ unset($_SESSION['verification_message']);
 $error = '';
 $attempts = $_SESSION['verification_attempts'] ?? 0;
 
-// Traitement de la vérification
 if (isset($_POST['verify'])) {
     $entered_code = trim($_POST['code']);
     
-    // Vérifier selon la méthode
     if ($method === 'totp') {
-        // Vérification TOTP (Google Authenticator)
         $users = loadUsers();
         $totp_secret = $users[$username]['totp_secret'] ?? null;
         
         if (!$totp_secret) {
-            $error = "❌ TOTP non configuré";
+            $error = "TOTP non configuré";
         } else {
-            // Vérifier le code TOTP
             if (verifyTOTP($totp_secret, $entered_code)) {
-                // Code correct !
                 createSessionAndRedirect($username);
             } else {
                 $attempts++;
                 $_SESSION['verification_attempts'] = $attempts;
-                $error = "❌ Code incorrect. Tentatives : $attempts/3";
+                $error = "Code incorrect. Tentatives : $attempts/3";
             }
         }
         
     } else {
-        // Vérification Email/SMS
-        
-        // Vérifier l'expiration
         if (time() > $_SESSION['code_expiry']) {
-            $error = "❌ Le code a expiré. Veuillez recommencer.";
+            $error = "Le code a expiré. Veuillez recommencer.";
             session_destroy();
         }
-        // Vérifier le code
         elseif ($entered_code == $_SESSION['verification_code']) {
-            // Code correct !
             createSessionAndRedirect($username);
         } else {
             $attempts++;
             $_SESSION['verification_attempts'] = $attempts;
             
             if ($attempts >= 3) {
-                $error = "❌ Trop de tentatives. Veuillez recommencer.";
+                $error = "Trop de tentatives. Veuillez recommencer.";
                 session_destroy();
             } else {
-                $error = "❌ Code incorrect. Tentatives restantes : " . (3 - $attempts);
+                $error = "Code incorrect. Tentatives restantes : " . (3 - $attempts);
             }
         }
     }
 }
 
-// Fonction pour créer la session et rediriger
 function createSessionAndRedirect($username) {
     global $users;
     
-    // Créer le JWT
     $jwt = createJWT($username, [
         'email' => $_SESSION['temp_email'],
         'login_method' => '2fa',
         'verified_at' => time()
     ]);
     
-    // Stocker le JWT dans un cookie sécurisé
     setcookie('auth_token', $jwt, [
         'expires' => time() + JWT_EXPIRATION,
         'path' => '/',
-        'secure' => false, // Mettre true en production avec HTTPS
+        'secure' => false,
         'httponly' => true,
         'samesite' => 'Strict'
     ]);
     
-    // Nettoyer les variables temporaires
     unset($_SESSION['temp_username']);
     unset($_SESSION['temp_email']);
     unset($_SESSION['temp_phone']);
@@ -97,7 +82,6 @@ function createSessionAndRedirect($username) {
     unset($_SESSION['totp_enabled']);
     unset($_SESSION['totp_secret']);
     
-    // Créer une session classique aussi (pour compatibilité)
     $_SESSION['valid'] = true;
     $_SESSION['username'] = $username;
     $_SESSION['login_method'] = '2fa';
@@ -106,34 +90,22 @@ function createSessionAndRedirect($username) {
     exit();
 }
 
-// Fonction pour vérifier un code TOTP
 function verifyTOTP($secret, $code) {
-    // Décoder le secret Base32
     $key = base32Decode($secret);
-    
-    // Obtenir le timestamp actuel (en périodes de 30 secondes)
     $time = floor(time() / 30);
     
-    // Vérifier le code actuel et les codes adjacents (pour tenir compte du décalage de temps)
     for ($i = -1; $i <= 1; $i++) {
         $calculatedCode = generateTOTP($key, $time + $i);
         if ($calculatedCode === $code) {
             return true;
         }
     }
-    
     return false;
 }
 
-// Fonction pour générer un code TOTP
 function generateTOTP($key, $time) {
-    // Convertir le temps en binaire (8 octets, big-endian)
     $timeHex = pack('N*', 0) . pack('N*', $time);
-    
-    // HMAC-SHA1
     $hash = hash_hmac('sha1', $timeHex, $key, true);
-    
-    // Extraction dynamique (Dynamic Truncation)
     $offset = ord($hash[19]) & 0xf;
     $code = (
         ((ord($hash[$offset]) & 0x7f) << 24) |
@@ -141,12 +113,9 @@ function generateTOTP($key, $time) {
         ((ord($hash[$offset + 2]) & 0xff) << 8) |
         (ord($hash[$offset + 3]) & 0xff)
     ) % 1000000;
-    
-    // Retourner le code à 6 chiffres
     return str_pad($code, 6, '0', STR_PAD_LEFT);
 }
 
-// Fonction pour décoder Base32
 function base32Decode($input) {
     $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
     $output = '';
@@ -164,7 +133,6 @@ function base32Decode($input) {
             $v &= ((1 << $vbits) - 1);
         }
     }
-    
     return $output;
 }
 ?>
@@ -175,18 +143,156 @@ function base32Decode($input) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vérification du code</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 0.75rem;
+            background-color: rgba(17, 24, 39, 1);
+            padding: 2rem;
+            color: rgba(243, 244, 246, 1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .method-badge {
+            display: inline-block;
+            background-color: rgba(167, 139, 250, 0.2);
+            color: rgba(167, 139, 250, 1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(156, 163, 175, 1);
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .success-msg {
+            background-color: rgba(167, 139, 250, 0.2);
+            border: 1px solid rgba(167, 139, 250, 0.2);
+            color: rgba(156, 163, 175, 1);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .error-msg {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: rgba(248, 113, 113, 1);
+            padding: 0.75rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        form {
+            margin-top: 1.5rem;
+        }
+
+        .code-input {
+            width: 100%;
+            border-radius: 0.375rem;
+            border: 1px solid rgba(55, 65, 81, 1);
+            outline: none;
+            background-color: rgba(17, 24, 39, 1);
+            padding: 0.75rem 1rem;
+            color: rgba(243, 244, 246, 1);
+            font-size: 1.5rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .code-input:focus {
+            border-color: rgba(167, 139, 250, 1);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
+        }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background-color: rgba(167, 139, 250, 1);
+            padding: 0.75rem;
+            text-align: center;
+            color: rgba(17, 24, 39, 1);
+            border: none;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: rgba(147, 119, 230, 1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .links a {
+            color: rgba(156, 163, 175, 1);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .links a:hover {
+            color: rgba(243, 244, 246, 1);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h2> Entrez le code de vérification</h2>
+    <div class="form-container">
+        <h2>Entrez le code de vérification</h2>
         
-        <?php if ($method === 'email'): ?>
-            <span class="method-badge">📧 Email</span>
-        <?php elseif ($method === 'sms'): ?>
-            <span class="method-badge">📱 SMS</span>
-        <?php elseif ($method === 'totp'): ?>
-            <span class="method-badge">🔐 Authenticator</span>
-        <?php endif; ?>
+        <div style="text-align: center; margin-bottom: 1rem;">
+            <?php if ($method === 'email'): ?>
+                <span class="method-badge">Email</span>
+            <?php elseif ($method === 'sms'): ?>
+                <span class="method-badge">SMS</span>
+            <?php elseif ($method === 'totp'): ?>
+                <span class="method-badge">Authenticator</span>
+            <?php endif; ?>
+        </div>
         
         <p class="subtitle">
             <?php if ($method === 'totp'): ?>
@@ -216,7 +322,7 @@ function base32Decode($input) {
                 autofocus
                 autocomplete="off"
             >
-            <button type="submit" name="verify">Vérifier</button>
+            <button type="submit" name="verify" class="submit-btn">Vérifier</button>
         </form>
         
         <div class="links">

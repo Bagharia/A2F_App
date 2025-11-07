@@ -4,7 +4,7 @@
         "email": "test@example.com",
         "phone": "+33612345678",
         "totp_secret": "XMEHNS7KVIRGWPDC",
-        "totp_enabled": false
+        "totp_enabled": true
     },
     "admin": {
         "password": "$2y$10$0y2mKurN.BbwihXotykY0Opq9IPqm1gpDa0DTKT3\/hrYjLGY6Crvu",
