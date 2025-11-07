@@ -106,7 +106,7 @@ Pour activer la connexion via GitHub :
    - Cliquez sur "New OAuth App"
    - Remplissez le formulaire :
      - **Application name** : A2F App
-     - **Homepage URL** : `http://localhost:8000` (ou votre URL)
+     - **Homepage URL** : `http://localhost:8000/login.php` (ou votre URL)
      - **Authorization callback URL** : `http://localhost:8000/github_callback.php`
    - Cliquez sur "Register application"
 
