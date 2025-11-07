@@ -1,0 +1,9 @@
+{
+    "require": {
+        "firebase/php-jwt": "^6.11",
+        "twilio/sdk": "^8.8",
+        "phpmailer/phpmailer": "^7.0",
+        "endroid/qr-code": "^6.0",
+        "robthree/twofactorauth": "^3.0"
+    }
+}

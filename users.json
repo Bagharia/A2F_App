@@ -1,0 +1,16 @@
+{
+    "test": {
+        "password": "$2y$10$\/sX6EminokL9po6A\/.W\/WOOiXMG5lQmz7.aWUc4h3fp4wntJTzFva",
+        "email": "test@example.com",
+        "phone": "+33612345678",
+        "totp_secret": "XMEHNS7KVIRGWPDC",
+        "totp_enabled": false
+    },
+    "admin": {
+        "password": "$2y$10$0y2mKurN.BbwihXotykY0Opq9IPqm1gpDa0DTKT3\/hrYjLGY6Crvu",
+        "email": "admin@example.com",
+        "phone": "+33687654321",
+        "totp_secret": null,
+        "totp_enabled": false
+    }
+}

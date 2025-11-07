@@ -1,5 +1,6 @@
 <?php
 require_once 'config.php';
+require_once 'jwt_helper.php';
 
 $msg = '';
 
@@ -7,12 +8,18 @@ if (isset($_POST['login']) && !empty($_POST['username']) && !empty($_POST['passw
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     
+    $users = loadUsers();
+    
     if (array_key_exists($username, $users)) {
         if (password_verify($password, $users[$username]['password'])) {
-            $_SESSION['valid'] = true;
-            $_SESSION['username'] = $username;
-            $_SESSION['login_method'] = 'local';
-            header("Location: dashboard.php");
+            // Mot de passe correct → Passer à la 2FA
+            $_SESSION['temp_username'] = $username;
+            $_SESSION['temp_email'] = $users[$username]['email'];
+            $_SESSION['temp_phone'] = $users[$username]['phone'];
+            $_SESSION['totp_enabled'] = $users[$username]['totp_enabled'] ?? false;
+            $_SESSION['totp_secret'] = $users[$username]['totp_secret'] ?? null;
+            
+            header("Location: verify_2fa.php");
             exit();
         } else {
             $msg = "Mot de passe incorrect";

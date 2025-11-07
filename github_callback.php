@@ -1,25 +1,20 @@
 <?php
 require_once 'config.php';
 
-// Activer l'affichage des erreurs
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-echo "<h2>✅ Le fichier github_callback.php fonctionne !</h2>";
+echo "<h2>✅ Fichier github_callback.php trouvé !</h2>";
 
-// Vérifier si on a reçu un code
 if (!isset($_GET['code'])) {
     die("<p style='color:red;'>❌ Erreur : Aucun code reçu</p>");
 }
 
-// Vérifier le state (protection CSRF)
 if (!isset($_GET['state']) || !isset($_SESSION['oauth_state']) || $_GET['state'] !== $_SESSION['oauth_state']) {
     die("<p style='color:red;'>❌ Erreur : State invalide</p>");
 }
 
-// Supprimer le state
 unset($_SESSION['oauth_state']);
-
 $code = $_GET['code'];
 
 echo "<p>✅ Code reçu : " . htmlspecialchars($code) . "</p>";
@@ -44,6 +39,10 @@ curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($token_params));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Accept: application/json']);
+
+// ✅ Désactiver la vérification SSL (développement uniquement)
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
 $response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -86,6 +85,10 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     'User-Agent: PHP-OAuth-App'
 ]);
 
+// ✅ Désactiver la vérification SSL (développement uniquement)
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
 $user_response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
@@ -96,13 +99,13 @@ if (curl_errno($ch)) {
 curl_close($ch);
 
 if ($http_code !== 200) {
-    die("<p style='color:red;'>❌ Erreur HTTP $http_code lors de la récupération des données</p>");
+    die("<p style='color:red;'>❌ Erreur HTTP $http_code</p>");
 }
 
 $user_data = json_decode($user_response, true);
 
 if (!isset($user_data['login'])) {
-    echo "<pre>❌ Erreur lors de la récupération des données :\n";
+    echo "<pre>❌ Erreur :\n";
     print_r($user_data);
     echo "</pre>";
     exit();
@@ -131,5 +134,5 @@ echo "<p>✅ Session créée ! Redirection vers dashboard...</p>";
 // Rediriger vers le dashboard après 2 secondes
 header("refresh:2;url=dashboard.php");
 
-echo "<p><a href='dashboard.php'>Cliquez ici si la redirection ne fonctionne pas</a></p>";
+echo "<p><a href='dashboard.php'>Cliquez ici si pas de redirection</a></p>";
 ?>
