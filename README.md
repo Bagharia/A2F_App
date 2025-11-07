@@ -1,5 +1,6 @@
 # A2F App - Application d'Authentification à Deux Facteurs
 
+
 ##  Description
 
 A2F App est une application PHP d'authentification sécurisée avec support de l'authentification à deux facteurs (2FA). Elle permet aux utilisateurs de s'identifier avec plusieurs méthodes de vérification :
@@ -187,5 +188,13 @@ L'application crée automatiquement deux comptes de test :
    - Ou toute autre application TOTP
 3. Entrez le code à 6 chiffres généré par l'application pour activer TOTP
 
+## Auteurs
 
-```
+- Alexis HU
+- Mehdi BENCHRIF
+- Ayoub Chleh
+- Hugo DA ROCHA
+- Mickaël LAHLOU
+
+
+
